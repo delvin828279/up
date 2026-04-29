@@ -8,9 +8,13 @@ on:
         required: true
         type: string
       file_name:
-        description: 'Output filename (optional)'
+        description: 'Output filename'
         required: false
         type: string
+
+# 👇 این بخش رو اضافه کن
+permissions:
+  contents: write
 
 jobs:
   upload:
