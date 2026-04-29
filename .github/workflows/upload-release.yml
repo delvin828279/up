@@ -12,21 +12,25 @@ on:
         required: true
         type: string
 
+# 👇 این بخش رو حتما اضافه کن
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   upload:
     runs-on: ubuntu-latest
+    # 👇 این رو هم اضافه کن
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          sparse-checkout: |
-            uploads
-          sparse-checkout-cone-mode: false
+          # sparse-checkout رو حذف کن
+          fetch-depth: 0
       
       - name: Download file
         run: |
@@ -38,15 +42,13 @@ jobs:
         with:
           commit_message: "Upload ${{ inputs.file_name }}"
           file_pattern: "uploads/*"
+          # 👇 این رو اضافه کن
+          push_options: "--force"
       
       - name: Show Download Link
         run: |
           echo "✅ File uploaded successfully!"
           echo ""
           echo "📥 Download Links:"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "Raw:   https://raw.githubusercontent.com/${{ github.repository }}/main/uploads/${{ inputs.file_name }}"
           echo "Page:  https://github.com/${{ github.repository }}/blob/main/uploads/${{ inputs.file_name }}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ""
-          echo "::notice title=Download Link::https://raw.githubusercontent.com/${{ github.repository }}/main/uploads/${{ inputs.file_name }}"
