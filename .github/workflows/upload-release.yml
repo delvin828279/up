@@ -1,4 +1,4 @@
-name: Upload File to Release
+name: Upload File to Repository
 
 on:
   workflow_dispatch:
@@ -9,10 +9,9 @@ on:
         type: string
       file_name:
         description: 'Output filename'
-        required: false
+        required: true
         type: string
 
-# 👇 این بخش رو اضافه کن
 permissions:
   contents: write
 
@@ -23,26 +22,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            uploads
+          sparse-checkout-cone-mode: false
       
       - name: Download file
         run: |
-          FILENAME=$(basename "${{ inputs.file_url }}")
-          if [ -n "${{ inputs.file_name }}" ]; then
-            FILENAME="${{ inputs.file_name }}"
-          fi
-          echo "FILENAME=$FILENAME" >> $GITHUB_ENV
-          curl -L -o "$FILENAME" "${{ inputs.file_url }}"
+          mkdir -p uploads
+          curl -L -o "uploads/${{ inputs.file_name }}" "${{ inputs.file_url }}"
       
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Commit and Push
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          tag_name: v${{ github.run_number }}
-          name: "Release ${{ github.run_number }}"
-          files: ${{ env.FILENAME }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: "Upload ${{ inputs.file_name }}"
+          file_pattern: "uploads/*"
       
-      - name: Get Download Link
+      - name: Show Download Link
         run: |
-          echo "📥 Download Link:"
-          echo "https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/${{ env.FILENAME }}"
+          echo "✅ File uploaded successfully!"
+          echo ""
+          echo "📥 Download Links:"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Raw:   https://raw.githubusercontent.com/${{ github.repository }}/main/uploads/${{ inputs.file_name }}"
+          echo "Page:  https://github.com/${{ github.repository }}/blob/main/uploads/${{ inputs.file_name }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "::notice title=Download Link::https://raw.githubusercontent.com/${{ github.repository }}/main/uploads/${{ inputs.file_name }}"
